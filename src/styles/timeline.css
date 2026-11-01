@@ -1,0 +1,326 @@
+/* =========================================================================
+   Timeline: spine, dots, year markers and repository cards.
+   Mobile-first: a single column with the spine on the left; from 768px the
+   spine is centred and cards alternate sides.
+   ========================================================================= */
+
+.timeline {
+  --spine-x: 18px;
+  --dot-size: 16px;
+  position: relative;
+  padding-block: var(--space-2) var(--space-4);
+}
+
+.timeline__spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--spine-x) - 1px);
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-accent) 0%,
+    var(--color-secondary) 55%,
+    var(--color-accent) 100%
+  );
+  transform-origin: top center;
+  animation: spine-draw 1.2s var(--ease-out) both;
+}
+
+.timeline__spine--static {
+  animation: none;
+  background: var(--color-skeleton);
+}
+
+@keyframes spine-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.timeline__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Entries ---------- */
+.timeline__item {
+  position: relative;
+  /* Vertical padding (rather than margin) keeps card shadows inside the li,
+     which matters when content-visibility applies paint containment. */
+  padding: var(--space-3) var(--space-2) var(--space-3) calc(var(--spine-x) + var(--space-6));
+}
+
+.timeline--large .timeline__item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
+}
+
+.timeline__dot {
+  position: absolute;
+  top: calc(var(--space-3) + 1.35rem);
+  left: calc(var(--spine-x) - var(--dot-size) / 2);
+  z-index: 1;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border: 3px solid var(--color-accent);
+  border-radius: 50%;
+  background: var(--color-bg);
+  box-shadow: 0 0 0 4px var(--color-bg);
+  transition:
+    transform var(--duration-fast) ease,
+    background-color var(--duration-fast) ease;
+}
+
+.timeline__item:hover .timeline__dot {
+  transform: scale(1.2);
+  background: var(--color-accent);
+}
+
+/* ---------- Year markers ---------- */
+.timeline__year {
+  position: relative;
+  padding: var(--space-8) 0 var(--space-3) calc(var(--spine-x) + var(--space-6));
+}
+
+.timeline__year:first-child {
+  padding-top: var(--space-2);
+}
+
+.timeline__year-dot {
+  position: absolute;
+  bottom: calc(var(--space-3) + 0.85rem);
+  left: calc(var(--spine-x) - 7px);
+  width: 14px;
+  height: 14px;
+  background: var(--color-secondary);
+  transform: rotate(45deg);
+  border-radius: 2px;
+  box-shadow: 0 0 0 4px var(--color-bg);
+}
+
+.year-marker {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary-soft);
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  scroll-margin-top: var(--space-6);
+}
+
+/* ---------- Cards ---------- */
+.card {
+  position: relative;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  overflow-wrap: anywhere;
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) ease;
+}
+
+.card--hidden {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.card--visible {
+  opacity: 1;
+  transform: none;
+}
+
+.card--visible:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-accent);
+}
+
+.card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.card__title {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+.card__title a {
+  text-decoration: none;
+}
+
+.card__title a:hover {
+  text-decoration: underline;
+}
+
+.card__date {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.card__description {
+  max-width: 65ch;
+  line-height: 1.65;
+}
+
+.card__description--empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.card__meta:empty {
+  display: none;
+}
+
+.card__stars {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.card__homepage {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  margin-block: calc((var(--tap-target) - 1.6rem) / -2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.card--skeleton {
+  box-shadow: none;
+}
+
+.timeline__more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
+}
+
+/* ---------- Desktop: centred spine, alternating cards ---------- */
+@media (min-width: 768px) {
+  .timeline {
+    --spine-x: 50%;
+  }
+
+  .timeline__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--space-16);
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .timeline__item--left .card {
+    grid-column: 1;
+  }
+
+  .timeline__item--right .card {
+    grid-column: 2;
+  }
+
+  /* A small connector from card to spine reinforces which dot belongs to which card. */
+  .timeline__item .card::after {
+    content: '';
+    position: absolute;
+    top: 1.85rem;
+    width: calc(var(--space-16) / 2 - var(--dot-size) / 2);
+    height: 2px;
+    background: var(--color-border-strong);
+    opacity: 0.6;
+  }
+
+  .timeline__item--left .card::after {
+    left: 100%;
+  }
+
+  .timeline__item--right .card::after {
+    right: 100%;
+  }
+
+  .timeline__item--left .card--hidden {
+    transform: translateX(-18px);
+  }
+
+  .timeline__item--right .card--hidden {
+    transform: translateX(18px);
+  }
+
+  .timeline__year {
+    padding: var(--space-10) 0 var(--space-4);
+    text-align: center;
+  }
+
+  .timeline__year:first-child {
+    padding-top: var(--space-2);
+  }
+
+  .timeline__year-dot {
+    display: none;
+  }
+
+  .year-marker {
+    position: relative;
+    z-index: 1;
+    padding: var(--space-2) var(--space-6);
+    font-size: var(--text-2xl);
+    box-shadow: 0 0 0 6px var(--color-bg);
+  }
+}
+
+/* Cards appear without movement when motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  .card--hidden,
+  .timeline__item--left .card--hidden,
+  .timeline__item--right .card--hidden {
+    opacity: 1;
+    transform: none;
+  }
+
+  .card--visible:hover {
+    transform: none;
+  }
+
+  .timeline__spine,
+  .year-bar__fill {
+    animation: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+}

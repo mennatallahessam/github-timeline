@@ -1,0 +1,126 @@
+/* =========================================================================
+   Print / "Save as PDF" (NFR-7): single column, no interactive chrome,
+   cards never split across pages.
+   ========================================================================= */
+
+@media print {
+  :root,
+  :root[data-theme='dark'] {
+    color-scheme: light;
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-text: #000000;
+    --color-text-muted: #444444;
+    --color-border: #bbbbbb;
+    --color-accent: #3730a3;
+    --color-secondary: #9a3412;
+    --color-secondary-soft: #ffffff;
+    --shadow-md: none;
+    --shadow-lg: none;
+  }
+
+  body {
+    background: #ffffff;
+    font-size: 11pt;
+  }
+
+  .no-print,
+  .skip-link,
+  .site-header,
+  .search-form,
+  .hero__tagline,
+  .year-summary__chart,
+  .alert__retry {
+    display: none !important;
+  }
+
+  .year-summary {
+    border: 0;
+    padding: 0;
+  }
+
+  /* Show the accessible table instead of the interactive bars. */
+  .year-summary table.visually-hidden {
+    position: static !important;
+    width: auto;
+    height: auto;
+    margin: var(--space-2) 0 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+    border-collapse: collapse;
+  }
+
+  .year-summary th,
+  .year-summary td {
+    padding: 2pt 10pt 2pt 0;
+    text-align: left;
+  }
+
+  .hero,
+  .hero--compact {
+    padding: 0 0 12pt;
+    text-align: left;
+  }
+
+  .timeline {
+    --spine-x: 8px;
+  }
+
+  .timeline__spine {
+    animation: none;
+  }
+
+  .timeline__item,
+  .timeline--large .timeline__item {
+    display: block;
+    padding: 4pt 0 4pt 28px;
+    content-visibility: visible;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .timeline__item .card::after {
+    display: none;
+  }
+
+  .timeline__year,
+  .timeline__year:first-child {
+    padding: 12pt 0 4pt 28px;
+    text-align: left;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .timeline__year-dot {
+    display: block;
+  }
+
+  .year-marker {
+    box-shadow: none;
+    font-size: 14pt;
+  }
+
+  .card,
+  .card--hidden,
+  .card--visible {
+    opacity: 1 !important;
+    transform: none !important;
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .card__title a::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #444444;
+    overflow-wrap: anywhere;
+  }
+
+  .site-footer {
+    padding-top: 12pt;
+  }
+}
+
