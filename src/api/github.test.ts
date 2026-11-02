@@ -10,6 +10,7 @@ import {
   parseRepo,
   parseUser,
   reposPageUrl,
+  setBackendProxyEnabled,
   toApiError,
 } from './github';
 
@@ -157,9 +158,13 @@ describe('fetchTimeline', () => {
     fetchMock.mockImplementation(
       (_input, init) =>
         new Promise<Response>((_resolve, reject) => {
-          init?.signal?.addEventListener('abort', () =>
-            reject(new DOMException('The operation was aborted.', 'AbortError')),
-          );
+          const onAbort = () =>
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          if (init?.signal?.aborted) {
+            onAbort();
+            return;
+          }
+          init?.signal?.addEventListener('abort', onAbort);
         }),
     );
     const controller = new AbortController();
@@ -168,6 +173,56 @@ describe('fetchTimeline', () => {
 
     await expect(promise).rejects.toSatisfy(isAbortError);
     expect(fetchMock.mock.calls[0][1]?.signal).toBe(controller.signal);
+  });
+
+  it('uses the backend proxy when enabled and available', async () => {
+    setBackendProxyEnabled(true);
+    const user = makeUser();
+    const repos = [makeRepo()];
+    fetchMock.mockResolvedValueOnce(jsonResponse({ user, repos }));
+
+    const data = await fetchTimeline('octocat');
+    expect(data).toEqual({ user, repos });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(urlOf(fetchMock.mock.calls[0])).toBe('/api/timeline/octocat');
+  });
+
+  it('surfaces structured errors from the backend proxy', async () => {
+    setBackendProxyEnabled(true);
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        {
+          error: {
+            kind: 'rate_limited',
+            message: 'Rate limit exceeded',
+            resetAt: '2026-01-01T12:00:00.000Z',
+          },
+        },
+        { status: 429 },
+      ),
+    );
+    const error = await expectApiError(fetchTimeline('octocat'));
+    expect(error.kind).toBe('rate_limited');
+    expect(error.resetAt?.toISOString()).toBe('2026-01-01T12:00:00.000Z');
+  });
+
+  it('falls back to direct GitHub calls if the backend proxy fails or returns HTML', async () => {
+    setBackendProxyEnabled(true);
+    const user = makeUser();
+    const repos = [makeRepo()];
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response('<!doctype html>', {
+          status: 200,
+          headers: { 'Content-Type': 'text/html' },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse(user))
+      .mockResolvedValueOnce(jsonResponse(repos));
+
+    const data = await fetchTimeline('octocat');
+    expect(data).toEqual({ user, repos });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });
 

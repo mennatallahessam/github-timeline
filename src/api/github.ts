@@ -5,6 +5,13 @@ export const PER_PAGE = 100;
 /** Hard stop so a misbehaving API can never trap us in an infinite pagination loop. */
 const MAX_PAGES = 100;
 
+let backendProxyEnabled = true;
+
+/** Allows enabling or disabling the `/api/timeline/:username` backend proxy (e.g. in unit tests). */
+export function setBackendProxyEnabled(enabled: boolean): void {
+  backendProxyEnabled = enabled;
+}
+
 export class GitHubApiError extends Error {
   readonly kind: FetchErrorKind;
   readonly status?: number;
@@ -146,7 +153,7 @@ async function getJson(
   try {
     response = await fetch(url, { signal, headers: { Accept: 'application/vnd.github+json' } });
   } catch (error) {
-    if (isAbortError(error)) throw error;
+    if (isAbortError(error) || signal?.aborted) throw error;
     throw new GitHubApiError('network', 'Network request to GitHub failed', { cause: error });
   }
 
@@ -155,7 +162,7 @@ async function getJson(
   try {
     return { body: (await response.json()) as unknown, headers: response.headers };
   } catch (error) {
-    if (isAbortError(error)) throw error;
+    if (isAbortError(error) || signal?.aborted) throw error;
     console.error('[GitHub Timeline] Could not parse JSON from', url, error);
     throw new GitHubApiError('unknown', 'Malformed JSON from GitHub', { cause: error });
   }
@@ -214,8 +221,89 @@ export async function fetchAllRepos(username: string, signal?: AbortSignal): Pro
   return all;
 }
 
-/** Verifies the user exists, then loads all of their public repositories. */
+/**
+ * Attempts to load the timeline from our backend database/proxy (`/api/timeline/:username`)
+ * first. If the backend returns valid timeline data or a structured API error, we use it.
+ * If the backend is unreachable or returns a non-JSON SPA fallback (e.g. static-only hosting
+ * or direct unit tests), seamlessly falls back to direct GitHub REST API calls.
+ */
+async function tryFetchFromBackend(
+  username: string,
+  signal?: AbortSignal,
+): Promise<TimelineData | null> {
+  if (!backendProxyEnabled || typeof window === 'undefined') return null;
+
+  let response: Response;
+  try {
+    response = await fetch(`/api/timeline/${encodeURIComponent(username)}`, {
+      signal,
+      headers: { Accept: 'application/json' },
+    });
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    return null;
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    return null;
+  }
+
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    return null;
+  }
+
+  if (!isRecord(body)) return null;
+
+  if (!response.ok) {
+    if (isRecord(body.error) && typeof body.error.kind === 'string') {
+      const kind = body.error.kind as FetchErrorKind;
+      const resetAt =
+        typeof body.error.resetAt === 'string' && !Number.isNaN(Date.parse(body.error.resetAt))
+          ? new Date(body.error.resetAt)
+          : undefined;
+      if (
+        kind === 'not_found' ||
+        kind === 'rate_limited' ||
+        kind === 'network' ||
+        kind === 'server' ||
+        kind === 'unknown'
+      ) {
+        throw new GitHubApiError(kind, String(body.error.message ?? 'Backend API error'), {
+          status: response.status,
+          resetAt,
+        });
+      }
+    }
+    return null;
+  }
+
+  if (!('user' in body) || !('repos' in body) || !Array.isArray(body.repos)) {
+    return null;
+  }
+
+  const user = parseUser(body.user);
+  if (!user) return null;
+
+  const parsedRepos: GitHubRepo[] = [];
+  for (const item of body.repos) {
+    const repo = parseRepo(item);
+    if (!repo) return null;
+    if (!repo.private) parsedRepos.push(repo);
+  }
+
+  return { user, repos: parsedRepos };
+}
+
+/** Verifies the user exists, then loads all of their public repositories (via backend cache/proxy or direct GitHub API). */
 export async function fetchTimeline(username: string, signal?: AbortSignal): Promise<TimelineData> {
+  const fromBackend = await tryFetchFromBackend(username, signal);
+  if (fromBackend) return fromBackend;
+
   const user = await fetchUser(username, signal);
   const repos = await fetchAllRepos(user.login, signal);
   return { user, repos: repos.filter((repo) => !repo.private) };

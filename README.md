@@ -17,18 +17,19 @@ Turn any GitHub user's public repositories into a polished, shareable chronologi
 
 ## Tech Stack
 
-- **Framework**: React 18 + TypeScript (strict mode)
-- **Build tool**: Vite 5
+- **Frontend**: React 18 + TypeScript (strict mode) + Vite 5
+- **Backend**: Node.js + Express + TypeScript (`server/app.ts`, `server/githubProxy.ts`)
+- **Database**: Dual-mode **SQLite** (`node:sqlite` locally, zero setup) + **PostgreSQL** (`pg` in production when `DATABASE_URL` is configured) (`server/db.ts`)
 - **Styling**: Plain CSS with CSS custom properties (`tokens.css`, `base.css`, `components.css`, `timeline.css`, `print.css`)
-- **Data source**: Native `fetch` against GitHub REST API v3 (`https://api.github.com`)
-- **Testing**: Vitest + React Testing Library + `@vitest/coverage-v8`
+- **Data source**: Backend database cache & GitHub REST API v3 proxy (`/api/timeline/:username`) with optional `GITHUB_TOKEN` support (5,000 req/hr) and automatic client-side fallback
+- **Testing**: Vitest + React Testing Library + Supertest + `@vitest/coverage-v8`
 - **Code quality**: ESLint 9 (strict TypeScript config, zero warnings) + Prettier
 
 ## Setup & Run Instructions
 
 ### Prerequisites
 
-- Node.js 18+ and npm 9+
+- Node.js 22.5+ (includes built-in `node:sqlite`) and npm 10+
 
 ### Install & run
 
@@ -36,24 +37,33 @@ Turn any GitHub user's public repositories into a polished, shareable chronologi
 # Install dependencies
 npm install
 
-# Start the development server
+# Start the backend API + SQLite database server (http://localhost:3001)
+npm run dev:server
+
+# Start the Vite frontend dev server (proxies /api to :3001)
 npm run dev
 
-# Type-check and build for production
+# Type-check and build the frontend for production
 npm run build
 
-# Preview the production build locally
-npm run preview
+# Start the full-stack production server (serves API + built frontend)
+npm start
 
-# Run the test suite
+# Run the full test suite (frontend, API, and backend + SQLite database tests)
 npm test
 
-# Run tests with coverage on src/utils and src/api
+# Run tests with coverage
 npm run coverage
 
 # Run ESLint (zero warnings allowed)
 npm run lint
 ```
+
+### Environment Variables (Optional Locally)
+
+- `PORT`: Backend server port (defaults to `3001`).
+- `DATABASE_URL`: PostgreSQL connection string (when omitted, the server automatically uses a local SQLite database at `./data/timeline.sqlite`).
+- `GITHUB_TOKEN`: Optional GitHub Personal Access Token on the backend to raise the GitHub API rate limit from 60 to 5,000 requests/hour.
 
 ## Design Decisions & Trade-offs
 
@@ -89,13 +99,14 @@ The production build outputs static files to `dist/` with a relative base path (
 1. Import the project in Vercel (Vite is auto-detected).
 2. Confirm **Build Command** is `npm run build` and **Output Directory** is `dist`, then deploy.
 
-### Render
+### Render (Full-Stack Web Service + PostgreSQL Database)
 
-This repo includes a [`render.yaml`](./render.yaml) Blueprint for one-click static site deployment:
+This repo includes a [`render.yaml`](./render.yaml) Blueprint that provisions both the **Node.js Web Service** and a **Render PostgreSQL Database**:
 
-1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** → **Blueprint** (or **Static Site**).
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** → **Blueprint**.
 2. Connect your GitHub repository (`mennatallahessam/github-timeline`).
-3. If using **Static Site** manually, set:
-   - **Build Command**: `npm ci && npm run build`
-   - **Publish Directory**: `dist`
-4. Click **Create Static Site** (or **Apply** for Blueprint). Render will build and deploy automatically on every push to `master`.
+3. Render will create:
+   - `github-timeline-db` (managed PostgreSQL database)
+   - `github-timeline` (Node.js web service wired to `DATABASE_URL`, with `Build Command: npm ci && npm run build` and `Start Command: npm start`)
+4. Optionally provide a `GITHUB_TOKEN` environment variable to unlock 5,000 GitHub API requests/hour.
+5. Click **Apply** to deploy the full-stack app and database.

@@ -13,7 +13,7 @@ const CONTENT_SECURITY_POLICY = [
   "style-src 'self' https://fonts.googleapis.com",
   'font-src https://fonts.gstatic.com',
   "img-src 'self' data: https://avatars.githubusercontent.com",
-  'connect-src https://api.github.com',
+  "connect-src 'self' https://api.github.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -40,9 +40,17 @@ function contentSecurityPolicy(): Plugin {
 }
 
 export default defineConfig({
-  // Relative base so the static build works from any sub-path (e.g. GitHub Pages).
+  // Relative base so the build works from any sub-path or Express server.
   base: './',
   plugins: [react(), contentSecurityPolicy()],
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.API_PROXY_TARGET ?? 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     target: 'es2020',
     sourcemap: false,
@@ -52,6 +60,11 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     restoreMocks: true,
+    server: {
+      deps: {
+        external: ['node:sqlite'],
+      },
+    },
     coverage: {
       provider: 'v8',
       include: ['src/utils/**/*.ts', 'src/api/**/*.ts'],
