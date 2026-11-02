@@ -119,4 +119,3 @@ describe('copyText', () => {
     await expect(copyText('hello')).resolves.toBe(false);
   });
 });
-

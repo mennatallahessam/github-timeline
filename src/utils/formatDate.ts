@@ -31,4 +31,3 @@ export function getYear(iso: string): number {
 export function formatTime(date: Date, locale?: string): string {
   return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(date);
 }
-

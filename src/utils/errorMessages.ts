@@ -28,4 +28,3 @@ export function errorVariant(error: TimelineError): 'warning' | 'danger' {
 export function isRetryable(error: TimelineError): boolean {
   return error.kind === 'network' || error.kind === 'server';
 }
-

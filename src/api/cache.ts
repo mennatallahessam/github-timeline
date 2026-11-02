@@ -100,4 +100,3 @@ export function clearTimelineCache(): void {
     // Nothing else to clean up if storage is inaccessible.
   }
 }
-

@@ -11,13 +11,23 @@ export interface TimelineItemProps {
   repo: GitHubRepo;
   /** Side of the spine the card sits on in the two-column (≥768px) layout. */
   side: TimelineSide;
+  /** Currently active language filter, or null when showing all languages. */
+  selectedLanguage?: string | null;
+  /** Optional handler to toggle filtering by this card's language. */
+  onSelectLanguage?: (language: string | null) => void;
 }
 
-export function TimelineItem({ repo, side }: TimelineItemProps) {
+export function TimelineItem({
+  repo,
+  side,
+  selectedLanguage = null,
+  onSelectLanguage,
+}: TimelineItemProps) {
   const { ref, inView } = useInView<HTMLElement>();
   const repoUrl = toSafeHttpUrl(repo.html_url);
   const homepage = toSafeHttpUrl(repo.homepage);
   const languageColor = getLanguageColor(repo.language);
+  const isLanguageActive = Boolean(repo.language && selectedLanguage === repo.language);
 
   return (
     <li className={`timeline__item timeline__item--${side}`}>
@@ -46,14 +56,36 @@ export function TimelineItem({ repo, side }: TimelineItemProps) {
         )}
 
         <div className="card__meta">
-          {repo.language && (
-            <span
-              className="chip chip--language"
-              style={{ backgroundColor: languageColor, color: getReadableTextColor(languageColor) }}
-            >
-              {repo.language}
-            </span>
-          )}
+          {repo.language &&
+            (onSelectLanguage ? (
+              <button
+                type="button"
+                className={`chip chip--language chip--interactive${isLanguageActive ? ' chip--active' : ''}`}
+                style={{
+                  backgroundColor: languageColor,
+                  color: getReadableTextColor(languageColor),
+                }}
+                aria-pressed={isLanguageActive}
+                aria-label={
+                  isLanguageActive
+                    ? `Remove ${repo.language} language filter`
+                    : `Filter timeline by ${repo.language}`
+                }
+                onClick={() => onSelectLanguage(isLanguageActive ? null : repo.language)}
+              >
+                {repo.language}
+              </button>
+            ) : (
+              <span
+                className="chip chip--language"
+                style={{
+                  backgroundColor: languageColor,
+                  color: getReadableTextColor(languageColor),
+                }}
+              >
+                {repo.language}
+              </span>
+            ))}
           {repo.stargazers_count > 0 && (
             <span className="card__stars">
               <span aria-hidden="true">★ {repo.stargazers_count.toLocaleString('en-US')}</span>
@@ -72,4 +104,3 @@ export function TimelineItem({ repo, side }: TimelineItemProps) {
     </li>
   );
 }
-

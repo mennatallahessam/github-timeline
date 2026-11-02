@@ -66,4 +66,3 @@ describe('timeline cache', () => {
     setItem.mockRestore();
   });
 });
-

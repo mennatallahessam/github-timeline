@@ -71,4 +71,3 @@ export function buildTimelineEntries(repos: readonly GitHubRepo[]): TimelineEntr
 export function yearAnchorId(year: number): string {
   return `year-${year}`;
 }
-

@@ -18,4 +18,3 @@ createRoot(container).render(
     <App />
   </StrictMode>,
 );
-

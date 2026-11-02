@@ -1,12 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { makeRepo } from '../test/fixtures';
-import { DEFAULT_FILTERS, applyFilters, filterRepos, sortRepos } from './repoFilters';
+import {
+  DEFAULT_FILTERS,
+  applyFilters,
+  countByLanguage,
+  filterRepos,
+  sortRepos,
+} from './repoFilters';
 
-const source = makeRepo({ id: 1, name: 'source', created_at: '2022-01-01T00:00:00Z' });
-const fork = makeRepo({ id: 2, name: 'fork', fork: true, created_at: '2023-01-01T00:00:00Z' });
+const source = makeRepo({
+  id: 1,
+  name: 'source',
+  language: 'TypeScript',
+  created_at: '2022-01-01T00:00:00Z',
+});
+const fork = makeRepo({
+  id: 2,
+  name: 'fork',
+  language: 'Rust',
+  fork: true,
+  created_at: '2023-01-01T00:00:00Z',
+});
 const archived = makeRepo({
   id: 3,
   name: 'archived',
+  language: 'Python',
   archived: true,
   created_at: '2021-01-01T00:00:00Z',
 });
@@ -29,8 +47,39 @@ describe('filterRepos', () => {
     ).toEqual(['source', 'fork']);
   });
 
+  it('filters by primary language when specified', () => {
+    expect(
+      filterRepos(all, {
+        includeForks: true,
+        includeArchived: true,
+        language: 'Python',
+      }).map((r) => r.name),
+    ).toEqual(['archived']);
+  });
+
   it('never includes private repos', () => {
     expect(filterRepos(all, { includeForks: true, includeArchived: true })).not.toContain(secret);
+  });
+});
+
+describe('countByLanguage', () => {
+  it('counts and sorts languages by count desc then name asc, ignoring null languages', () => {
+    const items = [
+      makeRepo({ language: 'TypeScript' }),
+      makeRepo({ language: 'TypeScript' }),
+      makeRepo({ language: 'Rust' }),
+      makeRepo({ language: 'Go' }),
+      makeRepo({ language: null }),
+    ];
+    expect(countByLanguage(items)).toEqual([
+      { language: 'TypeScript', count: 2, percentage: 50 },
+      { language: 'Go', count: 1, percentage: 25 },
+      { language: 'Rust', count: 1, percentage: 25 },
+    ]);
+  });
+
+  it('returns an empty array when no repo has a language', () => {
+    expect(countByLanguage([makeRepo({ language: null })])).toEqual([]);
   });
 });
 
@@ -55,9 +104,12 @@ describe('sortRepos', () => {
 describe('applyFilters', () => {
   it('filters then sorts', () => {
     expect(
-      applyFilters(all, { sort: 'oldest', includeForks: true, includeArchived: true }).map(
-        (r) => r.name,
-      ),
+      applyFilters(all, {
+        sort: 'oldest',
+        includeForks: true,
+        includeArchived: true,
+        language: null,
+      }).map((r) => r.name),
     ).toEqual(['archived', 'source', 'fork']);
   });
 });

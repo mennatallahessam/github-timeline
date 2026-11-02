@@ -12,9 +12,19 @@ export interface TimelineProps {
   /** Number of matching repos not yet rendered (incremental rendering). */
   remaining: number;
   onShowMore: () => void;
+  /** Currently active language filter, or null when showing all languages. */
+  selectedLanguage?: string | null;
+  /** Handler to toggle filtering by language when a card's language chip is clicked. */
+  onSelectLanguage?: (language: string | null) => void;
 }
 
-export function Timeline({ entries, remaining, onShowMore }: TimelineProps) {
+export function Timeline({
+  entries,
+  remaining,
+  onShowMore,
+  selectedLanguage = null,
+  onSelectLanguage,
+}: TimelineProps) {
   const cardCount = entries.filter((entry) => entry.kind === 'repo').length;
   const isLarge = cardCount > LARGE_LIST_THRESHOLD;
 
@@ -28,7 +38,13 @@ export function Timeline({ entries, remaining, onShowMore }: TimelineProps) {
             entry.kind === 'year' ? (
               <YearMarker key={entry.key} year={entry.year} />
             ) : (
-              <TimelineItem key={entry.key} repo={entry.repo} side={entry.side} />
+              <TimelineItem
+                key={entry.key}
+                repo={entry.repo}
+                side={entry.side}
+                selectedLanguage={selectedLanguage}
+                onSelectLanguage={onSelectLanguage}
+              />
             ),
           )}
         </ol>
@@ -43,4 +59,3 @@ export function Timeline({ entries, remaining, onShowMore }: TimelineProps) {
     </div>
   );
 }
-

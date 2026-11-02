@@ -9,6 +9,7 @@ Turn any GitHub user's public repositories into a polished, shareable chronologi
 - **Chronological repository history**: Enter any GitHub username to generate a vertical timeline of their public repositories, complete with creation dates, descriptions, primary language chips, star counts, fork/archive badges, and external homepage links.
 - **Full pagination**: Automatically paginates through the GitHub REST API (`per_page=100`) until all public repositories are loaded—supporting prolific accounts with hundreds or thousands of repositories.
 - **Interactive filtering & sorting**: Instantly toggle between **Newest first** and **Oldest first**, and filter forks or archived repositories without refetching.
+- **Language breakdown & click-to-filter**: A multi-segment proportional bar and interactive language chips powered by GitHub Linguist colors. Click any language chip (in the breakdown bar or on a repository card) to filter the timeline and year summary to that language.
 - **Repositories-per-year summary**: A responsive CSS bar chart summarizing annual output that updates with active filters. Clicking any year smooth-scrolls and moves focus to that year's marker on the timeline, paired with an accessible data table for screen readers and print.
 - **Shareable deep links**: Syncs the active username to `?user={username}` via `history.replaceState`, updates the document title and meta description, and provides a one-click **Copy link** button with clipboard fallback.
 - **Light, dark, and print themes**: Automatically follows `prefers-color-scheme` with a persistent manual override in `localStorage`, plus a dedicated `@media print` stylesheet for saving clean PDFs.
@@ -88,3 +89,13 @@ The production build outputs static files to `dist/` with a relative base path (
 1. Import the project in Vercel (Vite is auto-detected).
 2. Confirm **Build Command** is `npm run build` and **Output Directory** is `dist`, then deploy.
 
+### Render
+
+This repo includes a [`render.yaml`](./render.yaml) Blueprint for one-click static site deployment:
+
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** → **Blueprint** (or **Static Site**).
+2. Connect your GitHub repository (`mennatallahessam/github-timeline`).
+3. If using **Static Site** manually, set:
+   - **Build Command**: `npm ci && npm run build`
+   - **Publish Directory**: `dist`
+4. Click **Create Static Site** (or **Apply** for Blueprint). Render will build and deploy automatically on every push to `master`.

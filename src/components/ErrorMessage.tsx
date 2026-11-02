@@ -27,4 +27,3 @@ export function ErrorMessage({ message, variant = 'danger', onRetry }: ErrorMess
     </div>
   );
 }
-

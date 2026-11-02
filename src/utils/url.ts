@@ -25,4 +25,3 @@ export function buildShareUrl(username: string, current: string): string {
   url.searchParams.set('user', username);
   return url.href;
 }
-

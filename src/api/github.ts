@@ -220,4 +220,3 @@ export async function fetchTimeline(username: string, signal?: AbortSignal): Pro
   const repos = await fetchAllRepos(user.login, signal);
   return { user, repos: repos.filter((repo) => !repo.private) };
 }
-

@@ -68,4 +68,3 @@ export function useTimeline(): UseTimelineResult {
 
   return { state, generate, retry };
 }
-

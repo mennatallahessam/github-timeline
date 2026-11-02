@@ -32,4 +32,3 @@ function legacyCopy(text: string): boolean {
     document.body.removeChild(textarea);
   }
 }
-

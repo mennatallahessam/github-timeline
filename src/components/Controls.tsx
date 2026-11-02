@@ -70,4 +70,3 @@ export function Controls({ filters, onChange, shownCount, totalCount, actions }:
     </div>
   );
 }
-

@@ -96,4 +96,3 @@ export function getReadableTextColor(background: string): string {
     ? DARK_TEXT
     : LIGHT_TEXT;
 }
-

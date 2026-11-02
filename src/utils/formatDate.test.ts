@@ -33,4 +33,3 @@ describe('formatTime', () => {
     expect(formatTime(date, 'en-US')).toMatch(/3:42\sPM/);
   });
 });
-

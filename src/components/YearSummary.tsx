@@ -57,4 +57,3 @@ export function YearSummary({ counts, onSelectYear }: YearSummaryProps) {
     </section>
   );
 }
-

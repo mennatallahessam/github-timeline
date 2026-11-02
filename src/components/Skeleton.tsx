@@ -37,4 +37,3 @@ export function Skeleton({ count = 4 }: SkeletonProps) {
     </div>
   );
 }
-

@@ -92,4 +92,3 @@ describe('useTimeline', () => {
     await waitFor(() => expect(result.current.state.status).toBe('success'));
   });
 });
-

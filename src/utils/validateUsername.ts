@@ -55,4 +55,3 @@ export function validateUsername(raw: string): UsernameValidation {
   }
   return { ok: true, username };
 }
-

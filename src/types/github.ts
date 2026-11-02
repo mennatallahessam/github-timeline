@@ -45,4 +45,3 @@ export type RequestState =
   | { status: 'loading'; username: string }
   | { status: 'success'; username: string; data: TimelineData }
   | { status: 'error'; username: string; error: TimelineError };
-

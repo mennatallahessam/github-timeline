@@ -51,4 +51,3 @@ export function useInView<T extends Element>(): { ref: RefObject<T>; inView: boo
 
   return { ref, inView };
 }
-

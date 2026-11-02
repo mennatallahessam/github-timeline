@@ -34,6 +34,7 @@ const repos: GitHubRepo[] = [
     name: 'old-archive',
     description: 'From the early days',
     created_at: '2019-05-20T10:00:00Z',
+    language: 'Python',
     archived: true,
   }),
 ];
@@ -282,5 +283,30 @@ describe('App', () => {
     await generateFor('octocat');
     expect(screen.getByRole('button', { name: 'Generating…' })).toBeDisabled();
     expect(screen.getByTestId('skeleton')).toBeInTheDocument();
+  });
+
+  it('filters the timeline and year summary when clicking language breakdown chips or card chips', async () => {
+    mockSuccess();
+    render(<App />);
+    const user = await generateFor('octocat');
+    await waitFor(timelineCards);
+
+    // Filter by Python from the language breakdown bar
+    await user.click(
+      screen.getByRole('button', { name: /Python: 1 repository \(50%\)\. Filter by Python\./ }),
+    );
+    expect(timelineCards()).toHaveLength(1);
+    expect(within(timelineCards()[0]).getByText('old-archive')).toBeInTheDocument();
+
+    // Clear the filter via the clear button
+    await user.click(screen.getByRole('button', { name: /Clear filter \(Python\)/ }));
+    expect(timelineCards()).toHaveLength(3);
+
+    // Filter by clicking a language chip directly inside a timeline card
+    await user.click(
+      within(timelineCards()[0]).getByRole('button', { name: 'Filter timeline by TypeScript' }),
+    );
+    expect(timelineCards()).toHaveLength(1);
+    expect(within(timelineCards()[0]).getByText('newest-app')).toBeInTheDocument();
   });
 });

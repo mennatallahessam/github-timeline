@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controls } from './components/Controls';
 import { CopyLinkButton } from './components/CopyLinkButton';
 import { ErrorMessage } from './components/ErrorMessage';
+import { LanguageBreakdown } from './components/LanguageBreakdown';
 import { ProfileHeader } from './components/ProfileHeader';
 import { SearchForm } from './components/SearchForm';
 import { Skeleton } from './components/Skeleton';
@@ -15,7 +16,13 @@ import { describeError, errorVariant, isRetryable } from './utils/errorMessages'
 import { getYear } from './utils/formatDate';
 import { buildTimelineEntries, countByYear, yearAnchorId } from './utils/groupByYear';
 import { pluralize } from './utils/pluralize';
-import { DEFAULT_FILTERS, applyFilters, type RepoFilters } from './utils/repoFilters';
+import {
+  DEFAULT_FILTERS,
+  applyFilters,
+  countByLanguage,
+  filterRepos,
+  type RepoFilters,
+} from './utils/repoFilters';
 import { buildShareUrl } from './utils/url';
 import { validateUsername } from './utils/validateUsername';
 
@@ -91,6 +98,16 @@ export function App() {
   );
 
   const repos = state.status === 'success' ? state.data.repos : EMPTY_REPOS;
+  // Base filter excludes language so the language breakdown bar stays intact while filtering.
+  const baseFilteredRepos = useMemo(
+    () =>
+      filterRepos(repos, {
+        includeForks: filters.includeForks,
+        includeArchived: filters.includeArchived,
+      }),
+    [repos, filters.includeForks, filters.includeArchived],
+  );
+  const languageStats = useMemo(() => countByLanguage(baseFilteredRepos), [baseFilteredRepos]);
   const filteredRepos = useMemo(() => applyFilters(repos, filters), [repos, filters]);
   const yearCounts = useMemo(() => countByYear(filteredRepos), [filteredRepos]);
   const visibleRepos = useMemo(
@@ -98,6 +115,24 @@ export function App() {
     [filteredRepos, visibleCount],
   );
   const entries = useMemo(() => buildTimelineEntries(visibleRepos), [visibleRepos]);
+
+  // Reset the active language filter when switching users or when fork/archive toggles hide that language.
+  useEffect(() => {
+    setFilters((current) => (current.language !== null ? { ...current, language: null } : current));
+  }, [repos]);
+
+  useEffect(() => {
+    if (
+      filters.language !== null &&
+      !languageStats.some((stat) => stat.language === filters.language)
+    ) {
+      setFilters((current) => ({ ...current, language: null }));
+    }
+  }, [filters.language, languageStats]);
+
+  const handleSelectLanguage = useCallback((language: string | null) => {
+    setFilters((current) => ({ ...current, language }));
+  }, []);
 
   // A new dataset or filter starts again from the first batch.
   useEffect(() => {
@@ -224,6 +259,11 @@ export function App() {
                     totalCount={repos.length}
                     actions={<CopyLinkButton getUrl={getShareUrl} />}
                   />
+                  <LanguageBreakdown
+                    stats={languageStats}
+                    selectedLanguage={filters.language}
+                    onSelectLanguage={handleSelectLanguage}
+                  />
                   <YearSummary counts={yearCounts} onSelectYear={handleSelectYear} />
                   {filteredRepos.length === 0 ? (
                     <p className="empty-state">
@@ -235,6 +275,8 @@ export function App() {
                       entries={entries}
                       remaining={filteredRepos.length - visibleRepos.length}
                       onShowMore={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                      selectedLanguage={filters.language}
+                      onSelectLanguage={handleSelectLanguage}
                     />
                   )}
                 </>

@@ -16,4 +16,3 @@ export function YearMarker({ year }: YearMarkerProps) {
     </li>
   );
 }
-

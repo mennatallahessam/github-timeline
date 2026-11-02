@@ -67,4 +67,3 @@ describe('yearAnchorId', () => {
     expect(yearAnchorId(2020)).toBe('year-2020');
   });
 });
-

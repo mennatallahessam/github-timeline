@@ -45,4 +45,3 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     </section>
   );
 }
-

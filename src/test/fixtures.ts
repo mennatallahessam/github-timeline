@@ -50,4 +50,3 @@ export function makeRepos(count: number, startYear = 2024): GitHubRepo[] {
     return makeRepo({ id: 10_000 + index, created_at: date.toISOString() });
   });
 }
-
