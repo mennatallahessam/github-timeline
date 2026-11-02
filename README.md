@@ -2,9 +2,11 @@
 
 Turn any GitHub user's public repositories into a polished, shareable chronological timeline.
 
+🌐 **Live Demo on Render**: [https://github-timeline-txo5.onrender.com](https://github-timeline-txo5.onrender.com)
+
 ![GitHub Timeline screenshot](./docs/screenshot-placeholder.png)
 
-> 🎬 **Live Demo Video**: [Watch `docs/demo.mp4`](./docs/demo.mp4)
+> 🎬 **Recorded Demo Video**: [Watch `docs/demo.mp4`](./docs/demo.mp4)
 
 ## Features
 

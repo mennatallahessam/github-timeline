@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Turn any GitHub user's public repositories into a beautiful, shareable timeline.",
+  "homepage": "https://github-timeline-txo5.onrender.com",
   "type": "module",
   "scripts": {
     "dev": "vite",
